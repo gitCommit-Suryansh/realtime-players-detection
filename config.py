@@ -1,7 +1,7 @@
 import os
 
 # Model configuration
-MODEL_NAME = "yolov8n.pt"  # Nano model for fast processing in CPU/Cloud environments
+MODEL_NAME = "yolov8m.pt"  # Nano model for fast processing in CPU/Cloud environments
 TRACKER_TYPE = "custom_botsort.yaml"  # Custom configuration for fast objects
 
 # Tracking targets (COCO class indices)
