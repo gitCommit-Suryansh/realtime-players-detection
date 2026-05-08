@@ -88,3 +88,54 @@ class VideoTracker:
         out.release()
         print(f"Finished processing. Output saved to {output_path}")
         return True
+
+    def process_video_stream(self, input_path, output_path):
+        cap = cv2.VideoCapture(input_path)
+        if not cap.isOpened():
+            print(f"Error: Could not open video {input_path}")
+            return
+
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps = int(cap.get(cv2.CAP_PROP_FPS))
+        
+        # We must use 'mp4v' or 'H264' (if available). Streamlit sometimes struggles with mp4v playback in browser.
+        # But for saving and downloading, mp4v is standard in OpenCV.
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+
+        while cap.isOpened():
+            success, frame = cap.read()
+            if not success:
+                break
+                
+            results = self.model.track(
+                frame, persist=True, tracker=TRACKER_TYPE, 
+                classes=TARGET_CLASSES, conf=CONFIDENCE_THRESHOLD, verbose=False
+            )
+
+            annotated_frame = results[0].plot()
+
+            boxes = results[0].boxes
+            obj_count = len(boxes) if boxes is not None else 0
+            cv2.putText(annotated_frame, f"Active Objects: {obj_count}", (20, 50), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 3)
+
+            if boxes is not None and boxes.id is not None:
+                track_ids = boxes.id.int().cpu().tolist()
+                centers = boxes.xywh.cpu().tolist()
+                for track_id, center in zip(track_ids, centers):
+                    x, y = int(center[0]), int(center[1])
+                    track = self.track_history[track_id]
+                    track.append((x, y))
+                    if len(track) > 1:
+                        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+                        cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 255, 255), thickness=3)
+
+            out.write(annotated_frame)
+            
+            # Yield the frame for Streamlit (Convert BGR to RGB)
+            yield cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+
+        cap.release()
+        out.release()

@@ -37,6 +37,15 @@ Below are sample screenshots demonstrating the YOLOv8 detections, BoT-SORT persi
 
 ## How to Run
 
+There are two ways to run this pipeline: via the Command Line Interface (CLI) or the live Web App (Streamlit).
+
+### 1. Web App Interface (Live Processing)
+To launch the beautiful, interactive web UI where you can upload videos and watch the YOLO detections happen in real-time:
+```bash
+streamlit run app.py
+```
+
+### 2. Command Line Interface (Headless)
 1. Place your input video inside the `data/` folder.
 2. Run the tracking pipeline by executing:
    ```bash
