@@ -1,0 +1,15 @@
+# Custom BoT-SORT settings optimized for fast-moving objects (like a sports ball)
+tracker_type: botsort
+track_high_thresh: 0.3      # Lowered from 0.5 to accept slightly blurred detections
+track_low_thresh: 0.05      # Lowered from 0.1 to keep track of highly blurred objects
+new_track_thresh: 0.4       # Lowered from 0.6 to start tracking the ball sooner
+track_buffer: 90            # Increased from 30 to keep ID alive even if ball is lost for 3 seconds (at 30fps)
+match_thresh: 0.95          # Increased from 0.8 to allow matching even if distance moved is very large
+fuse_score: True            # Required by new ultralytics version
+
+# BoT-SORT specifics
+gmc_method: sparseOptFlow
+proximity_thresh: 0.7       # Increased from 0.5 to account for fast movement
+appearance_thresh: 0.25
+with_reid: False
+model: auto                 # Required by new ultralytics version
