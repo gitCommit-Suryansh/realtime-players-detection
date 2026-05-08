@@ -4,8 +4,8 @@
 
 ## 1. Model & Tracker Choices
 
-**Detector:** YOLOv8 Medium (`yolov8m.pt`)
-- **Reasoning:** YOLOv8 is a state-of-the-art, single-stage object detector. The medium variant (`yolov8m`) was chosen because it provides an optimal balance between inference speed and detection accuracy. It is robust enough to detect people and sports balls across different scales, without the heavy computational burden of the larger (`x` or `l`) models.
+**Detector:** YOLOv8 Nano (`yolov8n.pt`)
+- **Reasoning:** YOLOv8 is a state-of-the-art, single-stage object detector. The Nano variant (`yolov8n`) was deliberately chosen to ensure the pipeline runs extremely fast on standard CPU environments (such as Streamlit Community Cloud). It provides an excellent balance between inference speed and detection accuracy, making it highly practical for live web deployments without GPU access.
 
 **Tracker:** BoT-SORT
 - **Reasoning:** BoT-SORT (Boost Track SORT) improves upon standard SORT and ByteTrack by incorporating camera motion compensation and a robust appearance feature extractor. In sports footage, rapid camera panning, zooming, and players crossing paths are common. BoT-SORT significantly reduces ID switching in these scenarios compared to purely intersection-over-union (IoU) based trackers.
