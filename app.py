@@ -21,35 +21,20 @@ if uploaded_file is not None:
     if st.button("Start Processing"):
         tracker = VideoTracker()
         
-        with st.spinner("Processing video... This may take a few minutes."):
-            # Process the video completely in the background
-            tracker.process_video(input_path, output_path)
-            
-            # --- FFMPEG CONVERSION FOR BROWSER PLAYBACK ---
-            try:
-                import imageio_ffmpeg
-                import subprocess
-                
-                web_output_path = output_path.replace('.mp4', '_web.mp4')
-                ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
-                
-                # Run ffmpeg to convert mp4v to H.264 (avc1) for native browser playback
-                subprocess.run([
-                    ffmpeg_path, '-y', '-i', output_path, 
-                    '-vcodec', 'libx264', '-preset', 'fast', web_output_path
-                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                
-                # If successful, use the web-compatible video for display and download
-                if os.path.exists(web_output_path):
-                    output_path = web_output_path
-            except Exception as e:
-                print(f"FFMPEG conversion failed: {e}")
-            # ----------------------------------------------
-                
-        st.success("Processing Complete!")
-        st.balloons()
-        
-        # Display the final video on the screen
+        st.write("### Processing...")
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
+        # process_video is now a generator that yields (frame, total) for progress
+        for current_frame, total_frames in tracker.process_video(input_path, output_path):
+            pct = int((current_frame / total_frames) * 100)
+            progress_bar.progress(pct)
+            status_text.markdown(
+                f"⚙️ **Processing frame {current_frame} of {total_frames}** &nbsp;|&nbsp; {pct}% complete"
+            )
+
+        progress_bar.progress(100)
+        status_text.markdown("✅ **Processing complete!**")
         st.write("### Final Output")
         try:
             st.video(output_path)

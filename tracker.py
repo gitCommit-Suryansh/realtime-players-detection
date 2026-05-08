@@ -46,6 +46,7 @@ class VideoTracker:
             # Frame skipping: only run YOLO on every Nth frame for speed
             if frame_count % FRAME_SKIP != 0 and last_annotated is not None:
                 out.write(last_annotated)
+                yield frame_count, total_frames
                 continue
 
             # Run tracking with reduced imgsz for faster CPU inference
@@ -91,10 +92,12 @@ class VideoTracker:
             last_annotated = annotated_frame
             out.write(annotated_frame)
 
+            # Yield progress for the Streamlit UI
+            yield frame_count, total_frames
+
         cap.release()
         out.release()
         print(f"Finished processing. Output saved to {output_path}")
-        return True
 
     def process_video_stream(self, input_path, output_path):
         cap = cv2.VideoCapture(input_path)
