@@ -3,12 +3,14 @@
 This project implements a computer vision pipeline capable of detecting and tracking multiple subjects (e.g., players, athletes, and sports balls) in public sports/event footage.
 
 ## Features
-- **Object Detection:** Detects `person` and `sports ball` using YOLOv8.
-- **Multi-Object Tracking:** Uses BoT-SORT to assign unique and persistent IDs to detected subjects.
-- **Robustness:** BoT-SORT helps handle occlusion, scale changes, and camera motion, making it highly suitable for sports footage.
+- **Interactive Web App:** Upload any sports video via the Streamlit web interface and get the tracked video processed directly in your browser.
+- **Object Detection:** Detects `person` and `sports ball` in every frame using YOLOv8m.
+- **Multi-Object Tracking:** Uses BoT-SORT to assign unique and persistent IDs across the full video duration.
+- **Robustness:** BoT-SORT handles occlusion, scale changes, and camera motion — essential for sports footage.
 - **Trajectory Visualization:** Draws a trailing yellow path behind each tracked object to visualize movement patterns over time.
-- **Active Object Count:** Dynamically calculates and displays the total number of currently tracked subjects on the screen.
-- **Video Annotation:** Generates an output video with bounding boxes, tracked IDs, paths, and metadata.
+- **Active Object Count:** Dynamically overlays the live count of tracked subjects on every frame.
+- **Live Progress Bar:** The web UI displays a real-time frame-by-frame progress indicator while processing.
+- **Download Output:** Download the fully annotated output video directly from the web app.
 
 ## Mandatory Deliverables
 
@@ -28,41 +30,65 @@ Below are sample screenshots demonstrating the YOLOv8 detections, BoT-SORT persi
 
 ## Installation
 
-1. Clone or download this repository.
+1. Clone this repository.
 2. Ensure you have Python 3.8+ installed.
-3. Install the dependencies:
+3. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate  # On Windows
+   ```
+4. Install the dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
 ## How to Run
 
-There are two ways to run this pipeline: via the Command Line Interface (CLI) or the live Web App (Streamlit).
-
-### 1. Web App Interface (Live Processing)
-To launch the beautiful, interactive web UI where you can upload videos and watch the YOLO detections happen in real-time:
+### ✅ Primary: Streamlit Web App (Recommended)
+The easiest way to use this project. Upload a video and get the tracked result directly in your browser:
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
 ```
+Then open [http://localhost:8501](http://localhost:8501), upload your sports video, click **"▶️ Start Processing"**, and download the result.
 
-### 2. Command Line Interface (Headless)
+### Live Deployment
+This app is also deployed publicly on **Streamlit Community Cloud** and can be accessed directly via the live URL without any local setup.
+
+### Alternative: Command Line Interface
+For headless/server-side processing without the UI:
 1. Place your input video inside the `data/` folder.
-2. Run the tracking pipeline by executing:
+2. Run:
    ```bash
    python main.py --video your_video.mp4
    ```
-3. The processed video with annotations will be saved in the `output/` folder.
+3. The annotated video will be saved in the `output/` folder.
 
 ## Configuration
-You can modify `config.py` to:
-- Change the target classes (e.g., track vehicles instead of people by adding COCO class `2` to `TARGET_CLASSES`).
-- Adjust the `CONFIDENCE_THRESHOLD`.
-- Swap the tracker from `botsort.yaml` to `bytetrack.yaml`.
+You can modify `config.py` to tune the pipeline:
+- `MODEL_NAME` — Switch YOLO model variant (e.g., `yolov8n.pt` for fastest speed, `yolov8m.pt` for best accuracy).
+- `TARGET_CLASSES` — Change which COCO object classes to track (e.g., add class `2` for cars).
+- `CONFIDENCE_THRESHOLD` — Lower this to detect more objects; raise it to reduce false positives.
+- `IMGSZ` — Reduce inference resolution (e.g., `320`) for faster processing on slow hardware.
+- `FRAME_SKIP` — Process every Nth frame to significantly speed up processing.
+
+## Project Structure
+```
+├── app.py                # Streamlit Web Application (primary interface)
+├── tracker.py            # Core YOLOv8 + BoT-SORT tracking logic
+├── config.py             # All configuration parameters
+├── main.py               # Command-line interface script
+├── custom_botsort.yaml   # Custom BoT-SORT configuration for sports footage
+├── requirements.txt      # Python dependencies
+├── packages.txt          # System dependencies for cloud deployment
+├── Technical_Report.md   # Detailed technical report
+└── Attachments/          # Sample output screenshots
+```
 
 ## Assumptions & Limitations
-- **Assumptions:** 
-  - The subjects to be tracked fall into standard COCO dataset classes (people, sports balls).
-  - The video resolution and FPS are reasonable enough to be processed on local hardware.
+- **Assumptions:**
+  - Subjects to be tracked fall into standard COCO dataset classes (people, sports balls).
+  - The Streamlit app processes videos sequentially (one at a time).
 - **Limitations:**
-  - Severe occlusions or completely overlapping subjects of identical appearance might still cause ID switches.
-  - Very small objects (like a distant sports ball) might not be detected consistently unless using a larger YOLO model (e.g., `yolov8x`).
+  - Processing speed depends on hardware. A GPU significantly accelerates inference.
+  - Severe occlusions or completely overlapping subjects of identical appearance may still cause ID switches.
+  - Very small or fast-moving objects (like a distant sports ball mid-kick) may not be detected consistently on every frame.

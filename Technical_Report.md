@@ -4,8 +4,8 @@
 
 ## 1. Model & Tracker Choices
 
-**Detector:** YOLOv8 Nano (`yolov8n.pt`)
-- **Reasoning:** YOLOv8 is a state-of-the-art, single-stage object detector. The Nano variant (`yolov8n`) was deliberately chosen to ensure the pipeline runs extremely fast on standard CPU environments (such as Streamlit Community Cloud). It provides an excellent balance between inference speed and detection accuracy, making it highly practical for live web deployments without GPU access.
+**Detector:** YOLOv8 Medium (`yolov8m.pt`)
+- **Reasoning:** YOLOv8 is a state-of-the-art, single-stage object detector. The medium variant (`yolov8m`) was chosen as it provides the optimal balance between inference speed and detection accuracy for sports footage. It is powerful enough to reliably detect players and fast-moving sports balls across different scales and motion blur conditions.
 
 **Tracker:** BoT-SORT
 - **Reasoning:** BoT-SORT (Boost Track SORT) improves upon standard SORT and ByteTrack by incorporating camera motion compensation and a robust appearance feature extractor. In sports footage, rapid camera panning, zooming, and players crossing paths are common. BoT-SORT significantly reduces ID switching in these scenarios compared to purely intersection-over-union (IoU) based trackers.
@@ -15,6 +15,15 @@
 To further enrich the tracking pipeline, the following optional features were successfully integrated:
 1. **Trajectory Visualization:** By maintaining a rolling queue (deque) of the past 30 center-point coordinates for each unique ID, the system renders a trailing polyline behind each player. This provides immediate visual context on player movement directions and speeds.
 2. **Object Count Over Time:** A dynamic counter extracts the length of the active bounding box array in each frame, overlaying the live player/object count directly onto the video.
+
+## 2.1 Web Application & Deployment
+
+In addition to the core tracking pipeline, a full **Streamlit Web Application** (`app.py`) was developed and deployed on **Streamlit Community Cloud**, providing a public-facing interface for the project:
+- Users can upload any sports video directly via the browser.
+- A live progress bar displays the current frame being processed (e.g., "Processing frame 120 of 355").
+- After processing, the annotated output video is displayed in the browser and available for download.
+- The pipeline uses `imageio-ffmpeg` to automatically transcode the output to **H.264** for native browser playback.
+- The app uses `opencv-python-headless` to ensure compatibility with Linux-based cloud servers that have no display (GUI) system.
 
 ## 3. Maintaining ID Consistency
 
