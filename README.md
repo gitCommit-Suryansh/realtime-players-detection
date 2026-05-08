@@ -17,7 +17,7 @@ This project implements a computer vision pipeline capable of detecting and trac
 - **Original Video Link:** [Vecteezy - Football Players Kicking The Ball](https://www.vecteezy.com/video/28545534-football-players-kicking-the-ball-on-pre-game-train)
 - **Technical Report:** Available in [`Technical_Report.md`](Technical_Report.md).
 - **Annotated Output Video:** Available in the `output/` directory.
-- **Demo Video:** [Watch Demo on Google Drive](https://drive.google.com/file/d/1calNJQzUBFSmXqbUfy7Xss2Bz6Rs9Goh/view?usp=sharing)
+- **Demo Video:** [Watch Demo on Google Drive](https://drive.google.com/file/d/1o49Usb3Uhtqc3pUN64_AGkqWX39Asrj3/view?usp=sharing)
 
 ## Sample Screenshots
 
