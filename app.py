@@ -18,20 +18,22 @@ if uploaded_file is not None:
     
     output_path = os.path.join(tempfile.gettempdir(), "tracked_output.mp4")
 
-    st.write("### Live Processing Feed")
-    # Placeholder for the live video stream
-    stframe = st.empty()
-    
     if st.button("Start Processing"):
         tracker = VideoTracker()
         
-        with st.spinner("Processing video..."):
-            # Stream the frames live
-            for frame in tracker.process_video_stream(input_path, output_path):
-                # use_container_width is the modern equivalent of use_column_width
-                stframe.image(frame, channels="RGB", use_container_width=True)
+        with st.spinner("Processing video... This may take a few minutes."):
+            # Process the video completely in the background
+            tracker.process_video(input_path, output_path)
                 
         st.success("Processing Complete!")
+        st.balloons()
+        
+        # Display the final video on the screen
+        st.write("### Final Output")
+        try:
+            st.video(output_path)
+        except Exception as e:
+            st.warning("Could not play the video directly in the browser (Codec issue). Please download it below.")
         
         # Provide download button for the final video
         with open(output_path, "rb") as video_file:
