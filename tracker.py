@@ -104,11 +104,14 @@ class VideoTracker:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
+        frame_count = 0
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
                 break
                 
+            frame_count += 1
+            
             results = self.model.track(
                 frame, persist=True, tracker=TRACKER_TYPE, 
                 classes=TARGET_CLASSES, conf=CONFIDENCE_THRESHOLD, verbose=False
@@ -132,10 +135,21 @@ class VideoTracker:
                         points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                         cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 255, 255), thickness=3)
 
+            # Write full-resolution frame to the output video
             out.write(annotated_frame)
             
-            # Yield the frame for Streamlit (Convert BGR to RGB)
-            yield cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+            # --- Performance Optimization for Streamlit UI ---
+            # Yield only every 2nd frame to reduce WebSocket lag
+            if frame_count % 2 == 0:
+                rgb_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+                # Resize the frame down to 800px width for fast UI rendering
+                h, w, _ = rgb_frame.shape
+                if w > 800:
+                    scale = 800 / w
+                    dim = (800, int(h * scale))
+                    rgb_frame = cv2.resize(rgb_frame, dim, interpolation=cv2.INTER_AREA)
+                    
+                yield rgb_frame
 
         cap.release()
         out.release()
