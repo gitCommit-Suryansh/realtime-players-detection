@@ -3,8 +3,7 @@ venv/
 env/
 .env
 
-# Data and Output
-output/
+
 [Aa]ttachments/*.mp4
 # Note: screenshots in attachments/ are intentionally tracked
 
