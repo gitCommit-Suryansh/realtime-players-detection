@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from collections import defaultdict, deque
 from ultralytics import YOLO
-from config import MODEL_NAME, TRACKER_TYPE, TARGET_CLASSES, CONFIDENCE_THRESHOLD
+from config import MODEL_NAME, TRACKER_TYPE, TARGET_CLASSES, CONFIDENCE_THRESHOLD, IMGSZ, FRAME_SKIP
 
 class VideoTracker:
     def __init__(self):
@@ -33,6 +33,7 @@ class VideoTracker:
         print(f"Resolution: {width}x{height}, FPS: {fps}, Total Frames: {total_frames}")
 
         frame_count = 0
+        last_annotated = None
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
@@ -42,15 +43,19 @@ class VideoTracker:
             if frame_count % 30 == 0:
                 print(f"Processing frame {frame_count}/{total_frames}...")
 
-            # Run tracking
-            # persist=True enables tracking across frames
-            # classes filters for target classes
+            # Frame skipping: only run YOLO on every Nth frame for speed
+            if frame_count % FRAME_SKIP != 0 and last_annotated is not None:
+                out.write(last_annotated)
+                continue
+
+            # Run tracking with reduced imgsz for faster CPU inference
             results = self.model.track(
                 frame, 
                 persist=True, 
                 tracker=TRACKER_TYPE, 
                 classes=TARGET_CLASSES,
                 conf=CONFIDENCE_THRESHOLD,
+                imgsz=IMGSZ,
                 verbose=False
             )
 
@@ -83,6 +88,7 @@ class VideoTracker:
             # -----------------------------
 
             # Write the annotated frame to the output video
+            last_annotated = annotated_frame
             out.write(annotated_frame)
 
         cap.release()
@@ -106,16 +112,23 @@ class VideoTracker:
         out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
         frame_count = 0
+        last_annotated = None
         while cap.isOpened():
             success, frame = cap.read()
             if not success:
                 break
                 
             frame_count += 1
-            
+
+            # Frame skipping for speed
+            if frame_count % FRAME_SKIP != 0 and last_annotated is not None:
+                out.write(last_annotated)
+                continue
+
             results = self.model.track(
                 frame, persist=True, tracker=TRACKER_TYPE, 
-                classes=TARGET_CLASSES, conf=CONFIDENCE_THRESHOLD, verbose=False
+                classes=TARGET_CLASSES, conf=CONFIDENCE_THRESHOLD,
+                imgsz=IMGSZ, verbose=False
             )
 
             annotated_frame = results[0].plot()
@@ -137,6 +150,7 @@ class VideoTracker:
                         cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 255, 255), thickness=3)
 
             # Write full-resolution frame to the output video
+            last_annotated = annotated_frame
             out.write(annotated_frame)
             
             # --- Performance Optimization for Streamlit UI ---
