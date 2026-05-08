@@ -24,6 +24,27 @@ if uploaded_file is not None:
         with st.spinner("Processing video... This may take a few minutes."):
             # Process the video completely in the background
             tracker.process_video(input_path, output_path)
+            
+            # --- FFMPEG CONVERSION FOR BROWSER PLAYBACK ---
+            try:
+                import imageio_ffmpeg
+                import subprocess
+                
+                web_output_path = output_path.replace('.mp4', '_web.mp4')
+                ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+                
+                # Run ffmpeg to convert mp4v to H.264 (avc1) for native browser playback
+                subprocess.run([
+                    ffmpeg_path, '-y', '-i', output_path, 
+                    '-vcodec', 'libx264', '-preset', 'fast', web_output_path
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                
+                # If successful, use the web-compatible video for display and download
+                if os.path.exists(web_output_path):
+                    output_path = web_output_path
+            except Exception as e:
+                print(f"FFMPEG conversion failed: {e}")
+            # ----------------------------------------------
                 
         st.success("Processing Complete!")
         st.balloons()
